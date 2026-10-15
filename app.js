@@ -164,6 +164,8 @@ function drawTable() {
   const pieces = [];
   if (st.started || done) {
     pieces.push(`<div class="mini start-mini" style="--r:${TILT[0]}deg"><img src="${esc(M.start.photo)}" alt=""><p>${esc(M.start.lines[0])}</p></div>`);
+    const him = M.start.him; // his card sits next to hers
+    if (him) pieces.push(`<div class="mini start-mini him-mini" style="--r:2.5deg"><img src="${esc(him.photo)}" alt="">${him.line ? `<p>${esc(him.line)}</p>` : ""}</div>`);
   }
   for (let i = 0; i < done; i++) {
     if (i === justSolved - 1) continue; // it is on screen above, don't show it twice
@@ -216,8 +218,10 @@ function stage() {
 function startView(el) {
   const t = openAt(1);
   const wait = now() < t;
+  const him = M.start.him; // with his picture: hers on the left, his on the right, the lines under them; without: hers beside the lines
+  const lines = M.start.lines.map((l) => `<p>${esc(l)}</p>`).join("");
   el.innerHTML = `<article class="card start">
-    <div class="start-row"><img src="${esc(M.start.photo)}" alt=""><div>${M.start.lines.map((l) => `<p>${esc(l)}</p>`).join("")}</div></div>
+    ${him ? `<div class="start-duo"><img class="her" src="${esc(M.start.photo)}" alt=""><img class="him" src="${esc(him.photo)}" alt=""></div><div class="start-lines">${lines}</div>` : `<div class="start-row"><img src="${esc(M.start.photo)}" alt=""><div>${lines}</div></div>`}
     ${wait ? `<p class="muted center">第一张卡:${esc(when(t))}<br><span class="countdown" id="count"></span></p>` : `<p class="center"><button type="button" class="go" id="go">${esc(M.start.button)}</button></p>`}
   </article>`;
   if (wait) {

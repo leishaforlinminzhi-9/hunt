@@ -52,6 +52,13 @@ body {
 .start-row { display: grid; grid-template-columns: 36% 1fr; gap: 18px; align-items: center; margin-bottom: 14px; }
 .start-row img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; background: #efe6da; }
 .start-row p { margin: 0 0 8px; font-size: 19px; font-weight: 700; line-height: 1.6; }
+/* with both of them: hers on the left, his on the right (turned a little towards each other), the lines under them */
+.start-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 8px; }
+.start-duo img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--card); }
+.start-duo .her { transform: rotate(-3deg); }
+.start-duo .him { transform: rotate(3deg); }
+.start-lines { margin-bottom: 14px; text-align: center; }
+.start-lines p { margin: 0 0 6px; font-size: 19px; font-weight: 700; line-height: 1.6; }
 
 /* ── a clue ── */
 .visual { margin: 4px 0 16px; }
@@ -462,7 +469,7 @@ button.ghost { background: none; color: var(--muted); box-shadow: none; border: 
 .mini .piano { margin: 2px auto; }
 .mini .ans { margin: 8px 0 0 !important; font: italic 800 16px Georgia, "Songti SC", serif; color: var(--pink); }
 .start-mini img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 3px; margin-bottom: 8px; background: #efe6da; }
-.start-mini p { margin: 0; font-weight: 700; font-size: 12px; }
+.start-mini p { margin: 0; font-weight: 700; font-size: 12px; text-wrap: balance; }
 .final-mini { text-align: center; padding: 22px 8px; }
 .final-mini .big { margin: 0 !important; font: 900 26px/1 "Helvetica Neue", Arial, sans-serif; }
 .final-mini .script { margin: 0 !important; font: italic 800 17px Georgia, serif; color: var(--pink); transform: rotate(-5deg); }
