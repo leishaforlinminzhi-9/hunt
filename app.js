@@ -8,6 +8,7 @@ import { mountTrace, traceStatic } from "./trace-ui.js";
 import { mountColors, colorsStatic } from "./colors-ui.js";
 import { mountHeart, heartStatic } from "./heart-ui.js";
 import { mountCrowd, crowdStatic } from "./crowd-ui.js";
+import { mountDuo } from "./duo.js";
 
 const M = HUNT.meta;
 const N = M.total;
@@ -151,9 +152,26 @@ function bindTool(c) {
 // ── pieces of the page ─────────────────────────────────────────────────────────────────────────────────────────
 function media(g) {
   return [
+    g.scene ? `<div class="scene" data-scene="${esc(g.scene)}"></div>` : "", // the little animation (src/duo.js), started by startScenes()
     g.photo ? `<img class="shot" src="${esc(g.photo)}" alt="">` : "",
     g.audio ? `<p class="voice"><span>${esc(g.audioLabel || "点一下,听我说")}</span><audio controls preload="none" src="${esc(g.audio)}"></audio></p>` : "",
   ].join("");
+}
+
+// the small label of a gift: its own `tag`; "Gift #n" when no `tag` is written; no label at all when it is written as ""
+const giftTag = (g, n) => (g.tag === undefined ? `Gift #${n}` : g.tag);
+const giftBox = (c) => {
+  const tag = giftTag(c.gift, c.n);
+  return `<div class="gift">${tag ? `<p class="gift-tag">${esc(tag)}</p>` : ""}<h3>${esc(c.gift.title)}</h3>${c.gift.note ? `<p>${esc(c.gift.note)}</p>` : ""}${media(c.gift)}</div>`;
+};
+
+// the little animations on the page right now (they are started after the page is drawn and stopped before the next drawing)
+const scenes = [];
+function startScenes(el) {
+  for (const box of el.querySelectorAll('.scene[data-scene="duo"]')) scenes.push(mountDuo(box));
+}
+function stopScenes() {
+  while (scenes.length) scenes.pop().stop();
 }
 
 const TILT = [-3, 2, -1.5, 3, -2.5, 1.5, -2, 2.5];
@@ -180,16 +198,14 @@ function drawTable() {
 }
 
 function drawGifts() {
-  const any = cards.some((c, i) => c.gift && i < st.done.length) || HUNT.first.gift;
-  if (!any) { $("#gifts").innerHTML = ""; return; }
-  const rows = [];
-  for (let i = 0; i < N; i++) {
-    const c = cards[i];
-    const open = i < st.done.length && i !== justSolved - 1;
-    if (open && c.gift) rows.push(`<li class="got"><span>Gift #${i + 1}</span>${esc(c.gift.title)}</li>`);
-    else rows.push(`<li><span>Gift #${i + 1}</span>? ? ?</li>`);
-  }
-  $("#gifts").innerHTML = `<div class="gift-list"><p class="gift-head">礼物 ${Math.min(st.done.length, N)} / ${N}</p><ul>${rows.join("")}</ul></div>`;
+  const got = cards.map((c, i) => ({ c, i })).filter(({ c, i }) => c.gift && i < st.done.length && i !== justSolved - 1);
+  if (!got.length) { $("#gifts").innerHTML = ""; return; }
+  const rows = got.map(({ c, i }) => {
+    const again = c.gift.scene ? ` role="button" tabindex="0" data-gift="${i + 1}" aria-label="再看一遍:${esc(c.gift.title)}"` : "";
+    const tag = giftTag(c.gift, i + 1);
+    return `<li class="got"${again}>${tag ? `<span>${esc(tag)}</span>` : ""}${esc(c.gift.title)}${c.gift.scene ? `<i class="redo-ic" aria-hidden="true">↺</i>` : ""}</li>`;
+  });
+  $("#gifts").innerHTML = `<div class="gift-list"><p class="gift-head">礼物 ${got.length}</p><ul>${rows.join("")}</ul></div>`;
 }
 
 function drawSentence() {
@@ -374,16 +390,36 @@ function openRedo(k) {
     while (el.firstChild) saved.appendChild(el.firstChild);
     redoing = { saved };
   }
+  stopScenes();
   clueView(el, k, true);
+  scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// a gift with a little animation can be watched again from the list at the bottom (the card he is on is put aside the same way)
+function openGift(k) {
+  const c = cards[k - 1];
+  if (!c?.gift?.scene || k > st.done.length) return;
+  const el = $("#stage");
+  if (!redoing) {
+    const saved = document.createDocumentFragment();
+    while (el.firstChild) saved.appendChild(el.firstChild);
+    redoing = { saved };
+  }
+  stopScenes();
+  el.innerHTML = `<article class="card gift-card"><p class="redo-bar"><button type="button" class="ghost" id="redoback">← 回到刚才</button></p>${giftBox(c)}</article>`;
+  $("#redoback").addEventListener("click", closeRedo);
+  startScenes(el);
   scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function closeRedo() {
   if (!redoing) return;
   const el = $("#stage");
+  stopScenes();
   el.textContent = "";
   el.appendChild(redoing.saved);
   redoing = null;
+  startScenes(el); // (a card that was put aside while its animation ran)
   scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -405,7 +441,7 @@ function solvedView(el, k) {
     <p class="solved-line"><b>${esc(answerText(c))}</b></p>
     ${c.piece ? `<p class="piece">拼进句子里的词:<b>${esc(c.piece)}</b></p>` : ""}
     ${c.after ? `<p class="after">${esc(c.after)}</p>` : ""}
-    ${g ? `<div class="gift"><p class="gift-tag">Gift #${c.n}</p><h3>${esc(g.title)}</h3>${g.note ? `<p>${esc(g.note)}</p>` : ""}${media(g)}</div>` : ""}
+    ${g ? giftBox(c) : ""}
     ${rest ? `<p class="teaser">下一张:${esc(M.later.big)}${[].concat(M.later.lines)[0] ? `<br><span class="muted">${esc([].concat(M.later.lines)[0])}</span>` : ""}</p>` : ""}
     ${!last && upcoming ? `<p class="teaser">下一张:Hint #${upcoming.n}${upcoming.label ? ` · ${esc(upcoming.label)}` : ""}<br><span class="muted">${M.pace === "instant" || upcoming.immediate ? "现在就可以" : esc(when(openAt(k + 1)))}</span></p>` : ""}
     <p class="center"><button type="button" class="go" id="go">${last ? "看结果" : "收好"}</button></p>
@@ -414,6 +450,7 @@ function solvedView(el, k) {
     justSolved = 0;
     render();
   });
+  startScenes(el);
 }
 
 // every card that is open today is solved: the rest is not in this page yet, he comes back when the author has opened more
@@ -441,6 +478,7 @@ function finalView(el) {
 
 function clearTimers() {
   clearInterval(ticker);
+  stopScenes();
 }
 
 // Optional: ping the author's phone through ntfy.sh when a card is solved. Fire and forget; never blocks the game.
@@ -474,7 +512,7 @@ async function boot() {
     const bar = $("#preview");
     bar.hidden = false;
     const when = M.pace === "daily" ? `${previewDay ? `假装现在是第 ${previewDay} 天` : "按真实时间"} · ?day=1…${N} 切换` : "没有日期,一口气玩完";
-    bar.textContent = `预览版(只在你电脑上):${when} · ?reset=1 清空进度${parked ? ` · 线上只开放前 ${OPEN} 张,做完显示“${M.later.big}”` : ""}${M.sample ? " · 现在的内容是示例,不是你们的" : ""}`;
+    bar.textContent = `预览版(只在你电脑上):${when} · ?reset=1 清空进度 · ?duo 看小动画${parked ? ` · 线上只开放前 ${OPEN} 张,做完显示“${M.later.big}”` : ""}${M.sample ? " · 现在的内容是示例,不是你们的" : ""}`;
   }
   if (!globalThis.crypto?.subtle) {
     $("#stage").innerHTML = `<article class="card"><h2>换个浏览器试试</h2><p>这个页面需要在 https 下、用较新的浏览器(Safari / Chrome)打开。</p></article>`;
@@ -493,8 +531,26 @@ async function boot() {
       }
     });
   }
+  const giftFrom = (e) => {
+    const g = e.target.closest("[data-gift]");
+    if (g) openGift(Number(g.dataset.gift));
+  };
+  $("#gifts").addEventListener("click", giftFrom);
+  $("#gifts").addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-gift]")) {
+      e.preventDefault();
+      giftFrom(e);
+    }
+  });
   await restore();
   render();
+  if (M.allowPreview && params.has("duo")) { // preview only: ?duo shows the little animation right away, above the game
+    const card = document.createElement("section");
+    card.className = "card";
+    card.innerHTML = `<p class="hint-tag">预览:小动画</p><div class="gift"><div class="scene"></div></div>`;
+    $("#stage").before(card);
+    mountDuo(card.querySelector(".scene"));
+  }
 }
 
 boot();
