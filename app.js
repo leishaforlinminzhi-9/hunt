@@ -474,6 +474,7 @@ function finalView(el) {
     ${paras(f.lines)}
     <p class="sum">答错 ${total.wrong} 次 · 提示 ${total.hints} 次 · 认输 ${total.skipped} 次</p>
     ${f.signature ? `<p class="sign">${esc(f.signature)}</p>` : ""}
+    ${f.reward ? `<div class="gift reward">${f.reward.tag ? `<p class="gift-tag">${esc(f.reward.tag)}</p>` : ""}<h3>${esc(f.reward.title)}</h3>${f.reward.note ? `<p>${esc(f.reward.note)}</p>` : ""}${f.reward.href ? `<p class="center"><a class="go" href="${esc(f.reward.href)}">${esc(f.reward.button || "去看看")}</a></p>` : ""}</div>` : ""}
   </article>`;
 }
 

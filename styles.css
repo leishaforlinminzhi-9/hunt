@@ -386,6 +386,10 @@ button {
 button:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
 button:disabled { opacity: .45; cursor: default; }
 button.go { background: var(--pink); box-shadow: 0 3px 0 #a8204f; }
+a.go { display: inline-block; border-radius: 999px; padding: 12px 22px; font: 700 16px var(--sans); letter-spacing: .08em; color: #fff; background: var(--pink); box-shadow: 0 3px 0 #a8204f; text-decoration: none; }
+a.go:active { transform: translateY(2px); box-shadow: 0 1px 0 #a8204f; }
+.final .reward { margin: 22px 0 6px; }
+.final .reward p.center { margin: 12px 0 2px; }
 button.ghost { background: none; color: var(--muted); box-shadow: none; border: 1.5px dashed #cfc6ba; font-weight: 500; letter-spacing: .04em; padding: 8px 14px; font-size: 14px; }
 .msg { min-height: 1.6em; margin: 8px 0 0 !important; text-align: center; font-size: 15px; color: var(--pink); }
 .shake { animation: shake .4s; }
