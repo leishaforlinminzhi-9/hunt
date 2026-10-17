@@ -190,10 +190,8 @@ async function finish(endingId) {
   const e = data.endings[endingId];
   const seen = store.get("endings", []);
   if (!seen.includes(endingId)) { seen.push(endingId); store.set("endings", seen); }
-  const coupon = pick(data.coupons[e.coupon]);
-  const kind = e.coupon === "reward" ? ui.couponReward : e.coupon === "penalty" ? ui.couponPenalty : ui.couponKiss;
   const stats = STAT.map(([k]) => `${ui.stats[k]} ${g[k]}`).join(" · ");
-  const share = `${ui.shareTitle}我训出了「${e.title}」!${stats}。奖罚单:${coupon}。请小狗兑现。`;
+  const share = `${ui.shareTitle}我训出了「${e.title}」!${stats}。`;
   app.innerHTML = `
     <div class="top"><span class="t">${esc(data.title)}</span><span class="round">${esc(ui.resultTitle)}</span></div>
     <article class="card result">
@@ -202,12 +200,6 @@ async function finish(endingId) {
       <div class="pet-pic" id="pup"></div>
       <p class="story">${esc(e.text)}</p>
       <div class="final-stats">${STAT.map(([k, icon]) => `<span>${icon} ${esc(ui.stats[k])} <b>${g[k]}</b></span>`).join("")}</div>
-      <div class="coupon">
-        <p class="c-head">✂ ${esc(ui.couponTitle)}</p>
-        <p class="c-kind">${esc(kind)}</p>
-        <p class="c-text">${esc(coupon)}</p>
-        <p class="c-note">${esc(ui.couponNote)}</p>
-      </div>
       <div class="end-btns"><button class="go" id="copy">${esc(ui.copy)}</button><button class="ghost" id="again">${esc(ui.again)}</button></div>
       <p class="muted center">${esc(fill(ui.endings, { n: seen.length, total: ENDING_IDS.length }))}</p>
       <div class="ends">${ENDING_IDS.map((id) => `<span class="${seen.includes(id) ? "on" : ""}" title="${seen.includes(id) ? esc(data.endings[id].title) : "还没解锁"}">${seen.includes(id) ? data.endings[id].emoji : "❔"}</span>`).join("")}</div>
@@ -217,7 +209,7 @@ async function finish(endingId) {
   rig.set(e.expr ?? "happy");
   if (["happy", "kiss", "eat", "proud"].includes(e.expr)) rig.burst(e.expr === "kiss" ? "hearts" : "stars", 6);
   rig.idle(true);
-  window.__train = { get state() { return g; }, rig, coupon, share };
+  window.__train = { get state() { return g; }, rig, share };
   $("#copy").onclick = async () => {
     try { await navigator.clipboard.writeText(share); } catch { const t = document.createElement("textarea"); t.value = share; document.body.append(t); t.select(); try { document.execCommand("copy"); } catch { /* nothing more to try */ } t.remove(); }
     $("#copy").textContent = ui.copied;

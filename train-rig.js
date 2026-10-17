@@ -54,14 +54,16 @@ export function createRig(host) {
   host.classList.add("pup");
   const box = `left:${U(0)};top:${U(0)};width:${S(1024)};height:${S(1024)}`;
   host.innerHTML = `
-    <div class="pup-act"><div class="pup-pose"><div class="pup-dog">
-      ${FACES.map((n) => `<img class="pup-x ${n}" src="${pic(n)}" alt="" draggable="false" style="${box}">`).join("")}
-    </div><svg class="pup-fx" viewBox="0 0 ${SIDE} ${SIDE}" aria-hidden="true"><g transform="translate(${PAD} ${PAD})">${FACE_FX}</g></svg></div></div>
-    <div class="pup-back" aria-hidden="true"><img src="${pic("back")}" alt="" draggable="false" style="${box}"></div>
+    <div class="pup-turn">
+      <div class="pup-act"><div class="pup-pose"><div class="pup-dog">
+        ${FACES.map((n) => `<img class="pup-x ${n}" src="${pic(n)}" alt="" draggable="false" style="${box}">`).join("")}
+      </div><svg class="pup-fx" viewBox="0 0 ${SIDE} ${SIDE}" aria-hidden="true"><g transform="translate(${PAD} ${PAD})">${FACE_FX}</g></svg></div></div>
+      <div class="pup-back" aria-hidden="true"><img src="${pic("back")}" alt="" draggable="false" style="${box}"></div>
+    </div>
     <div class="pup-props"></div>
     <div class="pup-bits"></div>`;
   const $ = (s) => host.querySelector(s);
-  const act = $(".pup-act"), pose = $(".pup-pose"), dog = $(".pup-dog"), props = $(".pup-props"), bits = $(".pup-bits"), back = $(".pup-back");
+  const turn = $(".pup-turn"), act = $(".pup-act"), pose = $(".pup-pose"), dog = $(".pup-dog"), props = $(".pup-props"), bits = $(".pup-bits");
   const face = Object.fromEntries(FACES.map((n) => [n, $(`.pup-x.${n}`)]));
   const ready = Promise.all([...host.querySelectorAll("img")].map((i) => (i.decode ? i.decode().catch(() => {}) : Promise.resolve())));
   const calm = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -111,6 +113,10 @@ export function createRig(host) {
   const fingerSvg = `<svg viewBox="0 0 80 160"><path d="M18 156C10 120 14 80 24 44C26 30 46 30 48 44C58 80 62 120 56 156Z" fill="#f0bd96" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/></svg>`;
   const px = (n) => (host.getBoundingClientRect().width / SIDE) * n; // units of the picture -> screen pixels (so a move is the same share of her at any width)
   const T = (x = 0, y = 0, more = "") => `translate(${px(x)}px, ${px(y)}px) ${more}`.trim();
+  const spinTo = (angles, ms, o = {}) => { // she turns round (front -> back -> front ...): `angles` are the degrees she is turned by, one keyframe each
+    const view = `perspective(${Math.round(px(SIDE) * 1.6)}px)`;
+    return run(turn, angles.map((a) => ({ transform: `${view} rotateY(${a}deg)` })), { duration: ms, easing: "ease-in-out", ...o });
+  };
   const place = (el, cx, cy, w, h = w) => { el.style.cssText += `;left:${U(cx - w / 2)};top:${U(cy - h / 2)};width:${S(w)};height:${S(h)}`; return el; };
   const dish = (id) => `<img src="assets/dishes/${id === "hotpot" ? "hotpot" : id}.png" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain">`;
 
@@ -147,8 +153,9 @@ export function createRig(host) {
     },
     async spin(o) {
       if (o === "no") { set("sly"); await sleep(450); return; }
-      if (o === "half") { set("blank"); await run(act, [{ transform: tf() }, { transform: tf({ r: 180 }) }, { transform: tf({ r: 100 }) }, { transform: tf() }], { duration: 1300, easing: "ease-in-out" }); return; }
-      set("happy"); await run(act, [{ transform: tf() }, { transform: tf({ r: 360, y: -4 }) }, { transform: tf({ r: 720 }) }], { duration: 1100, easing: "ease-in-out" });
+      if (o === "half") { set("blank"); await spinTo([0, 180, 130, 0], 1700); return; } // turns her back, loses interest, turns round again
+      set("happy");
+      await Promise.all([spinTo([0, 720], 1500), run(act, [{ transform: tf() }, { transform: tf({ y: -4 }), offset: 0.5 }, { transform: tf() }], { duration: 1500 })]); // two smooth turns: front, back, front, back, front
       set("dizzy"); await run(act, [{ transform: tf({ r: 4 }) }, { transform: tf({ r: -4 }) }, { transform: tf({ r: 3 }) }, { transform: tf({ r: -3 }) }, { transform: tf() }], { duration: 650 }); set("happy");
     },
     async frisbee(o) {
@@ -237,13 +244,10 @@ export function createRig(host) {
     },
     async timeout(o) {
       set(o === "ok" ? "sulk" : "sorry");
-      await run(act, [{ transform: tf() }, { transform: tf({ sx: 0 }) }], { duration: 220, fill: "forwards", easing: "ease-in" });
-      host.classList.add("turned"); act.getAnimations().forEach((a) => a.cancel()); act.style.transform = tf({ sx: 0 }); await sleep(20);
-      await run(back, [{ transform: tf({ sx: 0 }) }, { transform: tf() }], { duration: 220, fill: "forwards", easing: "ease-out" });
+      await spinTo([0, 180], 520, { fill: "forwards" }); // turns to face the wall
       await sleep(1100);
-      await run(back, [{ transform: tf() }, { transform: tf({ sx: 0 }) }], { duration: 220, fill: "forwards", easing: "ease-in" });
-      host.classList.remove("turned"); act.style.transform = "";
-      await run(act, [{ transform: tf({ sx: 0 }) }, { transform: tf() }], { duration: 220, easing: "ease-out" });
+      await spinTo([180, 360], 520, { fill: "forwards" }); // and round again, the same way
+      turn.getAnimations().forEach((a) => a.cancel());
     },
     async confiscate(o) {
       const d = prop(dish("noodles")); place(d, 520, 950, 330);
@@ -264,7 +268,7 @@ export function createRig(host) {
       act.getAnimations().forEach((a) => a.cancel()); set("shock"); await sleep(450); set("sorry");
     },
     async ride() { set("proud"); burst("stars", 6); await run(act, [{ transform: tf() }, { transform: tf({ y: -5, r: -3, sx: 1.06, sy: 1.06 }) }, { transform: tf({ y: -4, r: -3, sx: 1.06, sy: 1.06 }) }], { duration: 600, fill: "forwards" }); await sleep(700); act.getAnimations().forEach((a) => a.cancel()); },
-    async strike() { set("angry"); await run(act, [{ transform: tf() }, { transform: tf({ sx: 0, }) }], { duration: 300, fill: "forwards" }); host.classList.add("turned"); act.getAnimations().forEach((a) => a.cancel()); act.style.transform = tf({ sx: 0 }); await run(back, [{ transform: tf({ sx: 0 }) }, { transform: tf() }], { duration: 300, fill: "forwards" }); },
+    async strike() { set("angry"); await spinTo([0, 180], 520, { fill: "forwards" }); }, // turns her back on him for good (reset() or the next screen brings her round)
   };
 
   // ─ coming and going ─
@@ -277,9 +281,8 @@ export function createRig(host) {
   }
   function reset(expr = "sly") {
     for (const a of host.getAnimations({ subtree: true })) a.cancel();
-    host.classList.remove("turned");
     host.classList.remove("fx-drool");
-    act.style.transform = ""; back.style.transform = "";
+    act.style.transform = "";
     props.innerHTML = "";
     set(expr);
   }

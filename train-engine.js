@@ -1,5 +1,5 @@
 // The rules of the training game, with no pictures in them: state in, state out. src/train.js draws the game; tools/train_sim.mjs plays it
-// thousands of times by script to check that the endings are balanced. The words (names, lines, coupons) are in train.mjs; the numbers are here.
+// thousands of times by script to check that the endings are balanced. The words (names, lines, endings) are in train.mjs; the numbers are here.
 //
 // Four numbers (0 to 100) describe the puppy:
 //   obey   听话  how well she follows a command (the thing you are training)
