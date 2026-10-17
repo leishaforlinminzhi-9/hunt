@@ -237,7 +237,7 @@ async function lab() {
     cell.className = "cell";
     cell.innerHTML = `<div class="r"></div>${name}`;
     grid.append(cell);
-    const r = createRig(cell.querySelector(".r"));
+    const r = createRig(cell.querySelector(".r"), { warp: false });
     r.ready.then(() => r.set(name));
     cell.onclick = () => big.reset(name);
   }

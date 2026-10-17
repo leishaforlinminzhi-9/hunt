@@ -25,15 +25,16 @@ body {
    One picture of her for every face she can make (assets/train/dog-*.webp, all the same size and place, drawn by the image model); only the one she is making shows. */
 .pup { position: relative; width: 100%; aspect-ratio: 1; container-type: inline-size; user-select: none; -webkit-user-select: none; }
 .pup img { position: absolute; display: block; max-width: none; pointer-events: none; -webkit-user-drag: none; }
-.pup-turn, .pup-act, .pup-pose, .pup-dog, .pup-back, .pup-props, .pup-bits, .pup-fx { position: absolute; inset: 0; }
+.pup-turn, .pup-act, .pup-views, .pup-pose, .pup-dog, .pup-props, .pup-bits, .pup-fx { position: absolute; inset: 0; }
 .pup-pose { transition: transform .26s ease; }
 .pup-dog { transform-origin: 50% 88%; }
+.pup canvas { position: absolute; display: block; max-width: none; pointer-events: none; }
+.pup.gl .pup-x { display: none; } /* (with the canvas working, the plain pictures are only where the canvas takes its textures from) */
 .pup-x { opacity: 0; }
 .pup-x.on { opacity: 1; }
-/* she can turn all the way round: the front of her and the back of her are the two faces of one turntable */
-.pup-turn { transform-style: preserve-3d; }
-.pup-act, .pup-back { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
-.pup-back { transform: rotateY(180deg); }
+/* she can turn all the way round: the pictures of her seen from the side and from behind (the rig fades from one to the next); the mirrored ones are the other half of the turn */
+.vw { opacity: 0; }
+.vw.mir { transform: scaleX(-1); } /* (the rig sets the transform of these while she turns) */
 .pup-props, .pup-bits { pointer-events: none; }
 .pup-prop { position: absolute; }
 .pup-prop svg { display: block; width: 100%; height: 100%; overflow: visible; }
