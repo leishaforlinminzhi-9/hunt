@@ -434,7 +434,7 @@ function solvedView(el, k) {
   const g = c.gift;
   const last = k >= N;
   const upcoming = cards[k]; // the next card is already unlocked, but it only opens at its time
-  const rest = parked && k >= OPEN; // nothing comes after this card for now: say when to come back
+  const rest = parked && k >= OPEN && M.later; // nothing comes after this card for now: say when to come back (unless the author wants nothing said: `later: false`)
   el.innerHTML = `<article class="card clue solved">
     ${tag(c, `<i class="ok">✓</i>`)}
     <div class="visual small">${visual(c, true)}</div>
@@ -456,6 +456,7 @@ function solvedView(el, k) {
 // every card that is open today is solved: the rest is not in this page yet, he comes back when the author has opened more
 function laterView(el) {
   const L = M.later;
+  if (!L) { el.textContent = ""; return; } // `later: false`: nothing is said, the table with the solved cards is all there is
   el.innerHTML = `<article class="card center later">
     <p class="later-big">${esc(L.big)}</p>
     ${L.script ? `<p class="later-script">${esc(L.script)}</p>` : ""}
@@ -512,7 +513,7 @@ async function boot() {
     const bar = $("#preview");
     bar.hidden = false;
     const when = M.pace === "daily" ? `${previewDay ? `假装现在是第 ${previewDay} 天` : "按真实时间"} · ?day=1…${N} 切换` : "没有日期,一口气玩完";
-    bar.textContent = `预览版(只在你电脑上):${when} · ?reset=1 清空进度 · ?duo 看小动画${parked ? ` · 线上只开放前 ${OPEN} 张,做完显示“${M.later.big}”` : ""}${M.sample ? " · 现在的内容是示例,不是你们的" : ""}`;
+    bar.textContent = `预览版(只在你电脑上):${when} · ?reset=1 清空进度 · ?duo 看小动画${parked ? ` · 线上只开放前 ${OPEN} 张,做完${M.later ? `显示“${M.later.big}”` : "什么也不显示"}` : ""}${M.sample ? " · 现在的内容是示例,不是你们的" : ""}`;
   }
   if (!globalThis.crypto?.subtle) {
     $("#stage").innerHTML = `<article class="card"><h2>换个浏览器试试</h2><p>这个页面需要在 https 下、用较新的浏览器(Safari / Chrome)打开。</p></article>`;
