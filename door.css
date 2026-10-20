@@ -72,8 +72,8 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; }
 @keyframes lunge { 0% { transform: scale(1); } 60% { transform: scale(1.55) translateY(-6%); } 100% { transform: scale(1.7) translateY(-8%); opacity: .0; } }
 .vis.wiggle { animation: wiggle .9s ease-in-out; }
 @keyframes wiggle { 0%, 100% { transform: none; } 20% { transform: rotate(-4deg) translateX(-2%); } 40% { transform: rotate(4deg) translateX(2%); } 60% { transform: rotate(-3deg) translateX(-1.5%); } 80% { transform: rotate(3deg) translateX(1.5%); } }
-.vis.melt { animation: melt .8s ease-in forwards; }
-@keyframes melt { 0% { opacity: 1; } 20% { transform: skewX(14deg); filter: hue-rotate(90deg) contrast(2); } 40% { transform: skewX(-12deg) translateX(8px); } 60% { opacity: .5; } 100% { opacity: 0; transform: scale(.85) skewX(30deg); } }
+.vis.melt { animation: runaway .8s ease-in forwards; } /* (the little baddie runs off sideways) */
+@keyframes runaway { 0% { transform: none; opacity: 1; } 15% { transform: translateY(-4%) rotate(-3deg); } 30% { transform: translateX(8%) translateY(0) rotate(3deg); } 100% { transform: translateX(140%) rotate(8deg); opacity: 0; } }
 .vis.hop { animation: hop .6s ease-out; }
 @keyframes hop { 30% { transform: translateY(-5%); } 60% { transform: translateY(0) scale(1.03); } }
 .vis.sad { filter: saturate(.7); animation: sadd .9s ease-out forwards; }
