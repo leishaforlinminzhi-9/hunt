@@ -64,6 +64,7 @@ const MOOD = {
   dead: { ears: -4, wag: [0, 1], tail: 14 }, wince: { ears: -4.5, wag: [0, 1], tail: -9 },
 };
 const rad = (d) => (d * Math.PI) / 180;
+const SPIN_MS = 1920; // how long the film of her spinning is (48 pictures of 40 ms)
 
 export function createRig(host, opts = {}) {
   host.classList.add("pup");
@@ -89,6 +90,8 @@ export function createRig(host, opts = {}) {
   let warp = null, glDirty = true;
   const canvas = $(".pup-gl");
   const decoded = Promise.all([...host.querySelectorAll("img")].map((i) => (i.decode ? i.decode().catch(() => {}) : Promise.resolve())));
+  let spinGif = false; // the little film of her spinning (assets/train/spin.gif) is there and loaded
+  { const g = new Image(); g.onload = () => { spinGif = true; }; g.src = "assets/train/spin.gif"; }
   const ready = (async () => {
     await decoded;
     if (opts.warp === false) return;
@@ -249,7 +252,15 @@ export function createRig(host, opts = {}) {
       if (o === "no") { set("sly"); await sleep(450); return; }
       if (o === "half") { set("blank"); viewSet = "k"; await turnTo(0, 180, 800); await sleep(250); await turnTo(180, 0, 650); return; } // turns her back, loses interest, turns round again
       set("happy"); viewSet = "h";
-      await Promise.all([turnTo(0, 720, 1700), run(turn, [{ transform: "translateY(0)" }, { transform: `translateY(${px(-30)}px)`, offset: 0.5 }, { transform: "translateY(0)" }], { duration: 1700 })]); // two smooth turns all the way round
+      if (spinGif && !calm) { // two smooth turns, as a film: an animated GIF (made by tools/pup_spin_gif.py + tools/gif/encode.mjs) on the colour of the card, laid over her; the last picture of it is her, as she is
+        const film = document.createElement("img");
+        film.className = "pup-spin"; film.alt = ""; film.draggable = false; film.src = "assets/train/spin.gif"; film.style.cssText = box;
+        turn.append(film);
+        await Promise.all([sleep(SPIN_MS), run(turn, [{ transform: "translateY(0)" }, { transform: `translateY(${px(-30)}px)`, offset: 0.5 }, { transform: "translateY(0)" }], { duration: SPIN_MS })]);
+        film.remove();
+      } else {
+        await Promise.all([turnTo(0, 720, 1700), run(turn, [{ transform: "translateY(0)" }, { transform: `translateY(${px(-30)}px)`, offset: 0.5 }, { transform: "translateY(0)" }], { duration: 1700 })]); // (without the film: two turns of the pictures)
+      }
       kick(260, 260, -240); set("dizzy"); await run(act, [{ transform: tf({ r: 4 }) }, { transform: tf({ r: -4 }) }, { transform: tf({ r: 3 }) }, { transform: tf({ r: -3 }) }, { transform: tf() }], { duration: 650 }); set("happy");
     },
     async frisbee(o) {
