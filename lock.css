@@ -27,3 +27,19 @@ button:active { transform: translateY(2px); box-shadow: 0 1px 0 #b83a67; }
 .hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 .hearts i { position: absolute; bottom: -30px; font-style: normal; font-size: 26px; animation: rise 3.2s ease-in forwards; }
 @keyframes rise { to { transform: translateY(-110vh) rotate(25deg); opacity: 0; } }
+
+/* the questions before the lock */
+.qhead { margin-top: 22px; font-size: 20px; }
+.qhead b { color: var(--pink); letter-spacing: .1em; }
+.intro { color: var(--muted); font-size: 15px; margin-top: 6px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+.qcard { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 12px 4px 10px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
+.qcard .clue { font-size: 30px; line-height: 1.25; letter-spacing: .04em; }
+.qcard .nm { margin-top: 8px; font-size: 14px; color: var(--muted); letter-spacing: .08em; word-break: break-all; }
+.qcard.got { border-color: var(--pink); background: #2d2433; }
+.qcard.got .nm { color: var(--ink); font-weight: 800; letter-spacing: 0; }
+.qcard.flip { animation: flipin .6s ease-out; }
+@keyframes flipin { 0% { transform: rotateY(90deg) scale(.9); } 100% { transform: none; } }
+input.shake { animation: shake .4s; }
+.done { margin-top: 16px; font-size: 20px; font-weight: 800; color: var(--amber); }
+button.go { margin-top: 12px; width: 100%; }
